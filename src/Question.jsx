@@ -12,6 +12,9 @@ const Question = (props) => {
   const [score, setScore] = useState(
     parseInt(localStorage.getItem("score")) || props.score
   );
+  const [incorrectAnswers, setIncorrectAnswers] = useState(
+    JSON.parse(localStorage.getItem("incorrectAnswers")) || []
+  );
 
   function selected(e) {
     setSelectedOption(e.target.value);
@@ -19,12 +22,26 @@ const Question = (props) => {
   }
 
   function submitHandler() {
+    const currentQuestion = props.question[qno];
+    if (selectedOption !== currentQuestion.answer) {
+      const newIncorrectAnswers = [
+        ...incorrectAnswers,
+        {
+          question: currentQuestion.question,
+          selectedAnswer: selectedOption,
+          correctAnswer: currentQuestion.answer,
+        },
+      ];
+      setIncorrectAnswers(newIncorrectAnswers);
+      localStorage.setItem("incorrectAnswers", JSON.stringify(newIncorrectAnswers));
+    }
+
     if (qno === props.question.length - 1) {
       setQuizCompleted(true);
       localStorage.setItem("quizCompleted", true);
       localStorage.removeItem("selectedOption"); // Clear selected option
     } else {
-      setAnsweredCorrectly(selectedOption === props.question[qno].answer);
+      setAnsweredCorrectly(selectedOption === currentQuestion.answer);
       setSelectedOption(null); // Reset selected option for the next question
       setQno(qno + 1);
       localStorage.setItem("qno", qno + 1);
@@ -53,13 +70,29 @@ const Question = (props) => {
       {quizCompleted ? (
         <div className="quiz-completion-message flex flex-col items-center">
           <h1 className="text-3xl font-bold text-gray-800">
-            Congrats! You have scored {score}.
+            You have scored {score} marks
           </h1>
+          {incorrectAnswers.length > 0 && (
+            <div className="incorrect-answers mt-4 p-4 bg-red-100 rounded-md">
+              <h2 className="text-2xl font-semibold text-red-600 mb-4">Incorrect Answers:</h2>
+              {incorrectAnswers.map((item, index) => (
+                <div key={index} className="mb-2">
+                  <p className="text-lg font-medium text-gray-800">{item.question}</p>
+                  <p className="text-sm text-red-500">
+                    Your answer: {item.selectedAnswer}
+                  </p>
+                  <p className="text-sm text-green-500">
+                    Correct answer: {item.correctAnswer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <>
           <header className="question-header flex items-center justify-between py-4 px-8 bg-gray-200 rounded-t-md">
-            <div className="text-center flex-col items-center justify-between">
+            <div className="text-right flex-col items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-700">
                 Score: {score} / {props.question.length}
               </h2>
