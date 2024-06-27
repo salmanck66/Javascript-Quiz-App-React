@@ -7,7 +7,7 @@ function App() {
   const questions = [
     {
       question: 'What keyword is used to declare a variable in JavaScript?',
-      options: ['var', 'int', 'string', 'let'],
+      options: ['var', 'int', 'string', 'char'],
       answer: 'var',
     },
     {
